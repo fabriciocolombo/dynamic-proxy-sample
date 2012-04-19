@@ -85,23 +85,47 @@ public class TestProxy {
 
 		assertNotNull("Not apply changes", applied);
 		assertEquals("Fabricio", applied.getName());
-		
+
 		proxy.getAddresses().add(new Address());
-		
+
 		assertEquals(0, person.getAddresses().size());
 		assertEquals(1, proxy.getAddresses().size());
-		
-		proxy.getAddresses().get(0).setAddress("Avenue Brasil");
-		
-		assertEquals("Avenue Brasil", proxy.getAddresses().get(0).getAddress());
-				
-		interceptor = (EntityInterceptor<Person>) proxy;
-		person = interceptor.applyChanges();
-		
-		assertEquals(1, person.getAddresses().size());
-		
-		assertEquals("Avenue Brasil", person.getAddresses().get(0).getAddress());
-		
 
+		proxy.getAddresses().get(0).setAddress("Avenue Brasil");
+
+		assertEquals("Avenue Brasil", proxy.getAddresses().get(0).getAddress());
+
+		person = interceptor.applyChanges();
+
+		assertEquals(1, person.getAddresses().size());
+		assertEquals("Avenue Brasil", person.getAddresses().get(0).getAddress());
+
+		proxy.getAddresses().get(0).setAddress("Changed");
+		person = interceptor.applyChanges();
+		assertEquals(1, person.getAddresses().size());
+		assertEquals("Changed", person.getAddresses().get(0).getAddress());
+
+		proxy.getAddresses().remove(0);
+		person = interceptor.applyChanges();
+		assertEquals(0, person.getAddresses().size());
 	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void dynamicProxy2() {
+		Person person = new Person();
+		person.getAddresses().add(new Address("address"));
+		
+		Person proxy = DynamicProxyEntityInterceptor.createProxy(person);
+		
+		proxy.getAddresses().get(0).setAddress("new");
+		
+		EntityInterceptor<Person> interceptor = (EntityInterceptor<Person>) proxy;
+		
+		assertEquals("address", person.getAddresses().get(0).getAddress());
+		assertEquals("new", proxy.getAddresses().get(0).getAddress());
+		
+		interceptor.applyChanges();
+		
+		assertEquals("new", person.getAddresses().get(0).getAddress());
 }
